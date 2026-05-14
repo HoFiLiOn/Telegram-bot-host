@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Telegram Bot Host</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">ARENA STYLE / BLACK & WHITE</p>
+          <h1>Telegram Bot Host</h1>
+          <p class="lead">
+            Панель для хостинга Telegram-ботов: <strong>Long Polling → Роутер → Обработчики → sendMessage</strong>.
+            Данные не сбрасываются после перезагрузки страницы, а боты можно автозапускать после рестарта сервера.
+          </p>
+        </div>
+        <div class="status-card">
+          <div class="status-line"><span>Сервис</span><strong id="service-status">проверка...</strong></div>
+          <div class="status-line"><span>URL</span><strong id="service-url">—</strong></div>
+          <div class="status-line"><span>Режим</span><strong>Self-hosted</strong></div>
+        </div>
+      </header>
+
+      <section class="diagram-section panel">
+        <div class="panel-head">
+          <h2>Схема работы</h2>
+        </div>
+        <pre class="diagram">Telegram API  &lt;—&gt;  Long Polling (сервер)
+                     ↓
+              Роутер сообщений
+                     ↓
+           Обработчики (файлы пользователя)
+                     ↓
+         sendMessage / answerCallbackQuery
+                     ↓
+               Telegram API</pre>
+      </section>
+
+      <main class="layout">
+        <aside class="sidebar panel">
+          <div class="panel-head">
+            <h2>Боты</h2>
+            <button id="refresh-bots" class="btn ghost">Обновить</button>
+          </div>
+
+          <form id="create-form" class="stack-form">
+            <input id="new-name" type="text" placeholder="Имя бота" required />
+            <input id="new-token" type="text" placeholder="Telegram token" required />
+            <input id="new-entry" type="text" placeholder="Главный файл, например bot.js" value="bot.js" />
+            <label class="checkbox-row">
+              <input id="new-autostart" type="checkbox" checked />
+              <span>Автозапуск после рестарта сервера</span>
+            </label>
+            <button type="submit" class="btn solid">Создать бота</button>
+          </form>
+
+          <div id="bot-list" class="bot-list empty">Пока нет ботов</div>
+        </aside>
+
+        <section class="content">
+          <div class="panel bot-panel">
+            <div class="panel-head">
+              <h2 id="selected-title">Выбери бота</h2>
+              <div class="toolbar">
+                <button id="start-bot" class="btn solid" disabled>Старт</button>
+                <button id="stop-bot" class="btn ghost" disabled>Стоп</button>
+                <button id="delete-bot" class="btn danger" disabled>Удалить</button>
+              </div>
+            </div>
+
+            <div id="bot-meta" class="meta-grid placeholder-card">
+              Слева создай бота или выбери существующего.
+            </div>
+          </div>
+
+          <div class="two-col">
+            <section class="panel files-panel">
+              <div class="panel-head">
+                <h2>Файлы</h2>
+                <div class="toolbar wrap">
+                  <button id="new-file" class="btn ghost" disabled>Новый файл</button>
+                  <label class="btn ghost upload-btn">
+                    Загрузить файлы
+                    <input id="upload-files" type="file" multiple hidden />
+                  </label>
+                  <label class="btn ghost upload-btn">
+                    Загрузить папку
+                    <input id="upload-folder" type="file" webkitdirectory multiple hidden />
+                  </label>
+                </div>
+              </div>
+
+              <div class="file-note">
+                Можно кидать свои JS/JSON/текстовые файлы. Поддерживаются относительные <code>require('./utils')</code>.
+              </div>
+              <div id="file-list" class="file-list empty">Нет выбранного бота</div>
+            </section>
+
+            <section class="panel editor-panel">
+              <div class="panel-head">
+                <h2 id="editor-title">Редактор</h2>
+                <div class="toolbar wrap">
+                  <button id="save-file" class="btn solid" disabled>Сохранить</button>
+                  <button id="delete-file" class="btn danger" disabled>Удалить файл</button>
+                </div>
+              </div>
+              <textarea id="code-editor" spellcheck="false" placeholder="Выберите файл для редактирования" disabled></textarea>
+            </section>
+          </div>
+
+          <div class="two-col bottom-grid">
+            <section class="panel settings-panel">
+              <div class="panel-head">
+                <h2>Настройки</h2>
+                <button id="save-settings" class="btn solid" disabled>Сохранить настройки</button>
+              </div>
+              <div class="stack-form settings-form">
+                <input id="edit-name" type="text" placeholder="Имя" disabled />
+                <input id="edit-token" type="text" placeholder="Новый token (оставь пустым, если не меняешь)" disabled />
+                <input id="edit-entry" type="text" placeholder="Главный файл" disabled />
+                <label class="checkbox-row">
+                  <input id="edit-autostart" type="checkbox" disabled />
+                  <span>Автозапуск</span>
+                </label>
+                <div class="subtle-line">
+                  Состояние и файлы сохраняются на сервере, поэтому после перезагрузки страницы всё остаётся.
+                </div>
+              </div>
+            </section>
+
+            <section class="panel logs-panel">
+              <div class="panel-head">
+                <h2>Логи</h2>
+                <div class="toolbar wrap">
+                  <button id="refresh-logs" class="btn ghost" disabled>Обновить</button>
+                  <button id="clear-storage" class="btn ghost" disabled>Очистить storage</button>
+                </div>
+              </div>
+              <div id="logs" class="logs empty">Нет выбранного бота</div>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
