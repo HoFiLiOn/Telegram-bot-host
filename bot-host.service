@@ -1,0 +1,15 @@
+[Unit]
+Description=Telegram Bot Host Panel
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/tg-bot-host
+ExecStart=/usr/bin/node /opt/tg-bot-host/server.js
+Restart=always
+RestartSec=5
+Environment=PORT=3000
+User=root
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,9 @@
+{
+  "name": "telegram-bot-host",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Self-hosted Telegram bot hosting panel with long polling, router and user handlers",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
