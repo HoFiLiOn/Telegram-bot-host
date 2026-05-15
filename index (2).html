@@ -1,0 +1,1018 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Telegram Bot Host</title>
+    <style>
+      :root {
+        --bg: #050505;
+        --panel: #0d0d0d;
+        --panel-2: #111111;
+        --line: #2a2a2a;
+        --text: #f5f5f5;
+        --muted: #aaaaaa;
+        --soft: #171717;
+        --danger: #ffffff;
+        --shadow: 0 18px 50px rgba(0, 0, 0, 0.34);
+        color-scheme: dark;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background:
+          radial-gradient(circle at top left, rgba(255, 255, 255, 0.06), transparent 30%),
+          linear-gradient(180deg, #090909 0%, #040404 100%);
+        color: var(--text);
+      }
+
+      button,
+      input,
+      textarea {
+        font: inherit;
+      }
+
+      .page {
+        max-width: 1500px;
+        margin: 0 auto;
+        padding: 28px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.6fr) minmax(260px, 0.8fr);
+        gap: 18px;
+        margin-bottom: 18px;
+      }
+
+      .hero h1,
+      .panel h2 {
+        margin: 0;
+      }
+
+      .eyebrow {
+        margin: 0 0 10px;
+        color: var(--muted);
+        letter-spacing: 0.18em;
+        font-size: 12px;
+      }
+
+      .lead {
+        margin: 10px 0 0;
+        color: #d6d6d6;
+        line-height: 1.6;
+      }
+
+      .panel,
+      .status-card {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent), var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        box-shadow: var(--shadow);
+      }
+
+      .status-card {
+        padding: 18px;
+        display: grid;
+        gap: 14px;
+      }
+
+      .status-line {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .status-line:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+      }
+
+      .status-line span {
+        color: var(--muted);
+      }
+
+      .status-note {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .diagram-section {
+        margin-bottom: 18px;
+      }
+
+      .diagram {
+        margin: 0;
+        padding: 22px;
+        overflow: auto;
+        font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+        color: #eeeeee;
+        line-height: 1.8;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 360px minmax(0, 1fr);
+        gap: 18px;
+      }
+
+      .sidebar,
+      .bot-panel,
+      .files-panel,
+      .editor-panel,
+      .settings-panel,
+      .logs-panel {
+        padding: 18px;
+      }
+
+      .panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .toolbar {
+        display: flex;
+        gap: 10px;
+      }
+
+      .wrap {
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        appearance: none;
+        border: 1px solid var(--line);
+        background: var(--soft);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 10px 14px;
+        cursor: pointer;
+        transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+      }
+
+      .btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        border-color: #575757;
+        background: #1b1b1b;
+      }
+
+      .btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .btn.solid {
+        background: #f5f5f5;
+        color: #050505;
+        border-color: #f5f5f5;
+        font-weight: 700;
+      }
+
+      .btn.ghost {
+        background: transparent;
+      }
+
+      .btn.danger {
+        border-color: #5a5a5a;
+        background: #111111;
+      }
+
+      .stack-form {
+        display: grid;
+        gap: 12px;
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        border: 1px solid var(--line);
+        background: #070707;
+        color: var(--text);
+        border-radius: 16px;
+        padding: 13px 15px;
+        outline: none;
+      }
+
+      input:focus,
+      textarea:focus {
+        border-color: #7e7e7e;
+      }
+
+      .checkbox-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #d6d6d6;
+      }
+
+      .checkbox-row input {
+        width: auto;
+      }
+
+      .bot-list,
+      .file-list,
+      .logs {
+        display: grid;
+        gap: 10px;
+      }
+
+      .empty,
+      .placeholder-card,
+      .file-note,
+      .subtle-line {
+        color: var(--muted);
+      }
+
+      .bot-card,
+      .file-item,
+      .meta-grid {
+        border: 1px solid var(--line);
+        background: var(--panel-2);
+        border-radius: 18px;
+      }
+
+      .bot-card {
+        padding: 14px;
+        cursor: pointer;
+        text-align: left;
+      }
+
+      .bot-card:hover,
+      .file-item:hover {
+        border-color: #595959;
+      }
+
+      .bot-card.active,
+      .file-item.active {
+        border-color: #f5f5f5;
+        box-shadow: inset 0 0 0 1px #f5f5f5;
+      }
+
+      .bot-card strong,
+      .file-item strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .bot-card .small,
+      .file-item .small,
+      .muted {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .content {
+        display: grid;
+        gap: 18px;
+      }
+
+      .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        padding: 16px;
+      }
+
+      .meta-grid .meta-box {
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: #090909;
+      }
+
+      .meta-box span {
+        display: block;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.3fr);
+        gap: 18px;
+      }
+
+      .bottom-grid {
+        grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.1fr);
+      }
+
+      .file-list {
+        max-height: 500px;
+        overflow: auto;
+      }
+
+      .file-item {
+        padding: 13px 14px;
+        cursor: pointer;
+        text-align: left;
+      }
+
+      #code-editor {
+        min-height: 500px;
+        resize: vertical;
+        font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+        line-height: 1.55;
+      }
+
+      .logs {
+        background: #050505;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 14px;
+        min-height: 280px;
+        max-height: 420px;
+        overflow: auto;
+        font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+        white-space: pre-wrap;
+        line-height: 1.5;
+      }
+
+      .upload-btn input {
+        display: none;
+      }
+
+      .settings-form {
+        min-height: 280px;
+      }
+
+      code {
+        padding: 2px 6px;
+        border-radius: 8px;
+        background: #171717;
+        border: 1px solid var(--line);
+      }
+
+      @media (max-width: 1200px) {
+        .layout,
+        .hero,
+        .two-col,
+        .bottom-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .meta-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .page {
+          padding: 16px;
+        }
+
+        .panel-head {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .toolbar {
+          width: 100%;
+          flex-wrap: wrap;
+        }
+
+        .meta-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">ARENA STYLE / BLACK & WHITE</p>
+          <h1>Telegram Bot Host</h1>
+          <p class="lead">
+            Панель для хостинга Telegram-ботов: <strong>Long Polling → Роутер → Обработчики → sendMessage</strong>.
+            Данные не сбрасываются после перезагрузки страницы, а боты можно автозапускать после рестарта сервера.
+          </p>
+        </div>
+        <div class="status-card">
+          <div class="status-line"><span>Сервис</span><strong id="service-status">проверка...</strong></div>
+          <div class="status-line"><span>URL</span><strong id="service-url">—</strong></div>
+          <div class="status-line"><span>Режим</span><strong>Self-hosted</strong></div>
+          <div class="status-note" id="service-note">Если статус показывает ошибку, значит сервер ещё не запущен или API недоступен.</div>
+        </div>
+      </header>
+
+      <section class="diagram-section panel">
+        <div class="panel-head">
+          <h2>Схема работы</h2>
+        </div>
+        <pre class="diagram">Telegram API  &lt;—&gt;  Long Polling (сервер)
+                     ↓
+              Роутер сообщений
+                     ↓
+           Обработчики (файлы пользователя)
+                     ↓
+         sendMessage / answerCallbackQuery
+                     ↓
+               Telegram API</pre>
+      </section>
+
+      <main class="layout">
+        <aside class="sidebar panel">
+          <div class="panel-head">
+            <h2>Боты</h2>
+            <button id="refresh-bots" class="btn ghost">Обновить</button>
+          </div>
+
+          <form id="create-form" class="stack-form">
+            <input id="new-name" type="text" placeholder="Имя бота" required />
+            <input id="new-token" type="text" placeholder="Telegram token" required />
+            <input id="new-entry" type="text" placeholder="Главный файл, например bot.js" value="bot.js" />
+            <label class="checkbox-row">
+              <input id="new-autostart" type="checkbox" checked />
+              <span>Автозапуск после рестарта сервера</span>
+            </label>
+            <button type="submit" class="btn solid">Создать бота</button>
+          </form>
+
+          <div id="bot-list" class="bot-list empty">Пока нет ботов</div>
+        </aside>
+
+        <section class="content">
+          <div class="panel bot-panel">
+            <div class="panel-head">
+              <h2 id="selected-title">Выбери бота</h2>
+              <div class="toolbar">
+                <button id="start-bot" class="btn solid" disabled>Старт</button>
+                <button id="stop-bot" class="btn ghost" disabled>Стоп</button>
+                <button id="delete-bot" class="btn danger" disabled>Удалить</button>
+              </div>
+            </div>
+
+            <div id="bot-meta" class="meta-grid placeholder-card">
+              Слева создай бота или выбери существующего.
+            </div>
+          </div>
+
+          <div class="two-col">
+            <section class="panel files-panel">
+              <div class="panel-head">
+                <h2>Файлы</h2>
+                <div class="toolbar wrap">
+                  <button id="new-file" class="btn ghost" disabled>Новый файл</button>
+                  <label class="btn ghost upload-btn">
+                    Загрузить файлы
+                    <input id="upload-files" type="file" multiple hidden />
+                  </label>
+                  <label class="btn ghost upload-btn">
+                    Загрузить папку
+                    <input id="upload-folder" type="file" webkitdirectory multiple hidden />
+                  </label>
+                </div>
+              </div>
+
+              <div class="file-note">
+                Можно кидать свои JS/JSON/текстовые файлы. Поддерживаются относительные <code>require('./utils')</code>.
+              </div>
+              <div id="file-list" class="file-list empty">Нет выбранного бота</div>
+            </section>
+
+            <section class="panel editor-panel">
+              <div class="panel-head">
+                <h2 id="editor-title">Редактор</h2>
+                <div class="toolbar wrap">
+                  <button id="save-file" class="btn solid" disabled>Сохранить</button>
+                  <button id="delete-file" class="btn danger" disabled>Удалить файл</button>
+                </div>
+              </div>
+              <textarea id="code-editor" spellcheck="false" placeholder="Выберите файл для редактирования" disabled></textarea>
+            </section>
+          </div>
+
+          <div class="two-col bottom-grid">
+            <section class="panel settings-panel">
+              <div class="panel-head">
+                <h2>Настройки</h2>
+                <button id="save-settings" class="btn solid" disabled>Сохранить настройки</button>
+              </div>
+              <div class="stack-form settings-form">
+                <input id="edit-name" type="text" placeholder="Имя" disabled />
+                <input id="edit-token" type="text" placeholder="Новый token (оставь пустым, если не меняешь)" disabled />
+                <input id="edit-entry" type="text" placeholder="Главный файл" disabled />
+                <label class="checkbox-row">
+                  <input id="edit-autostart" type="checkbox" disabled />
+                  <span>Автозапуск</span>
+                </label>
+                <div class="subtle-line">
+                  Состояние и файлы сохраняются на сервере, поэтому после перезагрузки страницы всё остаётся.
+                </div>
+              </div>
+            </section>
+
+            <section class="panel logs-panel">
+              <div class="panel-head">
+                <h2>Логи</h2>
+                <div class="toolbar wrap">
+                  <button id="refresh-logs" class="btn ghost" disabled>Обновить</button>
+                  <button id="clear-storage" class="btn ghost" disabled>Очистить storage</button>
+                </div>
+              </div>
+              <div id="logs" class="logs empty">Нет выбранного бота</div>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const state = {
+        bots: [],
+        selectedBotId: localStorage.getItem('selectedBotId') || '',
+        selectedBot: null,
+        currentFile: '',
+        logsTimer: null,
+        botsTimer: null
+      };
+
+      const els = {
+        serviceStatus: document.getElementById('service-status'),
+        serviceUrl: document.getElementById('service-url'),
+        serviceNote: document.getElementById('service-note'),
+        createForm: document.getElementById('create-form'),
+        newName: document.getElementById('new-name'),
+        newToken: document.getElementById('new-token'),
+        newEntry: document.getElementById('new-entry'),
+        newAutostart: document.getElementById('new-autostart'),
+        botList: document.getElementById('bot-list'),
+        refreshBots: document.getElementById('refresh-bots'),
+        selectedTitle: document.getElementById('selected-title'),
+        botMeta: document.getElementById('bot-meta'),
+        startBot: document.getElementById('start-bot'),
+        stopBot: document.getElementById('stop-bot'),
+        deleteBot: document.getElementById('delete-bot'),
+        newFile: document.getElementById('new-file'),
+        uploadFiles: document.getElementById('upload-files'),
+        uploadFolder: document.getElementById('upload-folder'),
+        fileList: document.getElementById('file-list'),
+        editorTitle: document.getElementById('editor-title'),
+        codeEditor: document.getElementById('code-editor'),
+        saveFile: document.getElementById('save-file'),
+        deleteFile: document.getElementById('delete-file'),
+        editName: document.getElementById('edit-name'),
+        editToken: document.getElementById('edit-token'),
+        editEntry: document.getElementById('edit-entry'),
+        editAutostart: document.getElementById('edit-autostart'),
+        saveSettings: document.getElementById('save-settings'),
+        refreshLogs: document.getElementById('refresh-logs'),
+        clearStorage: document.getElementById('clear-storage'),
+        logs: document.getElementById('logs')
+      };
+
+      async function api(path, options = {}) {
+        const response = await fetch(path, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(options.headers || {})
+          },
+          ...options
+        });
+
+        const isJson = response.headers.get('content-type')?.includes('application/json');
+        const data = isJson ? await response.json() : await response.text();
+
+        if (!response.ok) {
+          const message = typeof data === 'object' && data?.error ? data.error : response.statusText;
+          throw new Error(message);
+        }
+        return data;
+      }
+
+      function toast(message) {
+        window.alert(message);
+      }
+
+      function setServiceStatus(ok) {
+        els.serviceStatus.textContent = ok ? 'онлайн' : 'ошибка';
+        els.serviceUrl.textContent = window.location.origin;
+        els.serviceNote.textContent = ok
+          ? 'Сервер отвечает. Можно создавать ботов, загружать файлы и запускать long polling.'
+          : 'API не отвечает. Запусти сервер через node server.js или открой сайт с работающего хостинга.';
+      }
+
+      function syncActionButtons() {
+        const bot = state.selectedBot;
+        const hasBot = Boolean(bot);
+        els.startBot.disabled = !hasBot;
+        els.stopBot.disabled = !hasBot;
+        els.deleteBot.disabled = !hasBot;
+        els.newFile.disabled = !hasBot;
+        els.saveFile.disabled = !hasBot || !state.currentFile;
+        els.deleteFile.disabled = !hasBot || !state.currentFile;
+        els.saveSettings.disabled = !hasBot;
+        els.refreshLogs.disabled = !hasBot;
+        els.clearStorage.disabled = !hasBot;
+        els.editName.disabled = !hasBot;
+        els.editToken.disabled = !hasBot;
+        els.editEntry.disabled = !hasBot;
+        els.editAutostart.disabled = !hasBot;
+        els.codeEditor.disabled = !hasBot || !state.currentFile;
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll("'", '&#039;');
+      }
+
+      function renderBotList() {
+        if (!state.bots.length) {
+          els.botList.className = 'bot-list empty';
+          els.botList.textContent = 'Пока нет ботов';
+          return;
+        }
+
+        els.botList.className = 'bot-list';
+        els.botList.innerHTML = state.bots
+          .map((bot) => {
+            const active = bot.id === state.selectedBotId ? 'active' : '';
+            return `
+              <button class="bot-card ${active}" data-bot-id="${bot.id}">
+                <strong>${escapeHtml(bot.name)}</strong>
+                <div class="small">${bot.running ? '● Запущен' : '○ Остановлен'}</div>
+                <div class="small">Entry: ${escapeHtml(bot.entryFile || 'bot.js')}</div>
+                <div class="small">Файлов: ${bot.files?.length || 0} / Storage: ${bot.storageKeys || 0}</div>
+              </button>
+            `;
+          })
+          .join('');
+
+        for (const button of els.botList.querySelectorAll('[data-bot-id]')) {
+          button.addEventListener('click', () => selectBot(button.dataset.botId));
+        }
+      }
+
+      function renderMeta(bot) {
+        els.selectedTitle.textContent = bot.name;
+        els.botMeta.className = 'meta-grid';
+        els.botMeta.innerHTML = `
+          <div class="meta-box"><span>ID</span><strong>${escapeHtml(bot.id)}</strong></div>
+          <div class="meta-box"><span>Token</span><strong>${escapeHtml(bot.maskedToken || '—')}</strong></div>
+          <div class="meta-box"><span>Статус</span><strong>${bot.running ? 'Запущен' : 'Остановлен'}</strong></div>
+          <div class="meta-box"><span>Entry file</span><strong>${escapeHtml(bot.entryFile || 'bot.js')}</strong></div>
+          <div class="meta-box"><span>Автозапуск</span><strong>${bot.autostart ? 'Да' : 'Нет'}</strong></div>
+          <div class="meta-box"><span>Storage keys</span><strong>${bot.storageKeys || 0}</strong></div>
+        `;
+
+        els.editName.value = bot.name || '';
+        els.editToken.value = '';
+        els.editEntry.value = bot.entryFile || 'bot.js';
+        els.editAutostart.checked = Boolean(bot.autostart);
+      }
+
+      function renderFiles(bot) {
+        if (!bot) {
+          els.fileList.className = 'file-list empty';
+          els.fileList.textContent = 'Нет выбранного бота';
+          return;
+        }
+
+        const files = bot.files || [];
+        if (!files.length) {
+          els.fileList.className = 'file-list empty';
+          els.fileList.textContent = 'Файлов ещё нет';
+          return;
+        }
+
+        if (state.currentFile && !files.some((file) => file.path === state.currentFile)) {
+          state.currentFile = '';
+          els.codeEditor.value = '';
+        }
+
+        els.fileList.className = 'file-list';
+        els.fileList.innerHTML = files
+          .map((file) => {
+            const active = file.path === state.currentFile ? 'active' : '';
+            return `
+              <button class="file-item ${active}" data-file-path="${escapeHtml(file.path)}">
+                <strong>${escapeHtml(file.path)}</strong>
+                <div class="small">${file.size} bytes</div>
+              </button>
+            `;
+          })
+          .join('');
+
+        for (const button of els.fileList.querySelectorAll('[data-file-path]')) {
+          button.addEventListener('click', () => loadFile(button.dataset.filePath));
+        }
+      }
+
+      function renderLogs(bot) {
+        if (!bot) {
+          els.logs.className = 'logs empty';
+          els.logs.textContent = 'Нет выбранного бота';
+          return;
+        }
+
+        const logs = bot.logs || [];
+        if (!logs.length) {
+          els.logs.className = 'logs empty';
+          els.logs.textContent = 'Логи пустые';
+          return;
+        }
+
+        els.logs.className = 'logs';
+        els.logs.textContent = logs.map((item) => `[${item.at}] ${item.message}`).join('\n');
+        els.logs.scrollTop = els.logs.scrollHeight;
+      }
+
+      function clearEditor() {
+        els.editorTitle.textContent = 'Редактор';
+        els.codeEditor.value = '';
+        state.currentFile = '';
+      }
+
+      async function refreshBots(keepSelection = true) {
+        const data = await api('/api/bots');
+        state.bots = data.bots || [];
+
+        if (!keepSelection) {
+          state.selectedBotId = state.bots[0]?.id || '';
+        }
+
+        if (state.selectedBotId && !state.bots.some((bot) => bot.id === state.selectedBotId)) {
+          state.selectedBotId = state.bots[0]?.id || '';
+        }
+
+        if (!state.selectedBotId && state.bots[0]) {
+          state.selectedBotId = state.bots[0].id;
+        }
+
+        localStorage.setItem('selectedBotId', state.selectedBotId || '');
+        renderBotList();
+
+        if (state.selectedBotId) {
+          await loadBot(state.selectedBotId, false);
+        } else {
+          state.selectedBot = null;
+          clearEditor();
+          els.selectedTitle.textContent = 'Выбери бота';
+          els.botMeta.className = 'meta-grid placeholder-card';
+          els.botMeta.textContent = 'Слева создай бота или выбери существующего.';
+          renderFiles(null);
+          renderLogs(null);
+          syncActionButtons();
+        }
+      }
+
+      async function loadBot(botId, resetFileIfNeeded = true) {
+        const data = await api(`/api/bots/${botId}`);
+        state.selectedBot = data.bot;
+        state.selectedBotId = data.bot.id;
+        localStorage.setItem('selectedBotId', state.selectedBotId);
+        renderBotList();
+        renderMeta(data.bot);
+        renderFiles(data.bot);
+        renderLogs(data.bot);
+        syncActionButtons();
+
+        if (resetFileIfNeeded && !state.currentFile) {
+          const preferred = data.bot.files?.find((item) => item.path === data.bot.entryFile)?.path || data.bot.files?.[0]?.path;
+          if (preferred) {
+            await loadFile(preferred);
+          }
+        } else if (state.currentFile) {
+          const stillExists = data.bot.files?.find((item) => item.path === state.currentFile);
+          if (!stillExists) {
+            clearEditor();
+            syncActionButtons();
+          }
+        }
+      }
+
+      async function selectBot(botId) {
+        state.currentFile = '';
+        els.codeEditor.value = '';
+        await loadBot(botId, true);
+      }
+
+      async function loadFile(filePath) {
+        if (!state.selectedBotId) return;
+        const data = await api(`/api/bots/${state.selectedBotId}/files/content?path=${encodeURIComponent(filePath)}`);
+        state.currentFile = data.path;
+        els.editorTitle.textContent = `Редактор — ${data.path}`;
+        els.codeEditor.value = data.content || '';
+        renderFiles(state.selectedBot);
+        syncActionButtons();
+      }
+
+      async function saveCurrentFile() {
+        if (!state.selectedBotId || !state.currentFile) return;
+        await api(`/api/bots/${state.selectedBotId}/files`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            path: state.currentFile,
+            content: els.codeEditor.value
+          })
+        });
+        await loadBot(state.selectedBotId, false);
+        toast('Файл сохранён');
+      }
+
+      async function deleteCurrentFile() {
+        if (!state.selectedBotId || !state.currentFile) return;
+        if (!confirm(`Удалить файл ${state.currentFile}?`)) return;
+        await api(`/api/bots/${state.selectedBotId}/files?path=${encodeURIComponent(state.currentFile)}`, {
+          method: 'DELETE'
+        });
+        clearEditor();
+        await loadBot(state.selectedBotId, false);
+      }
+
+      function normalizeUploadedPath(file) {
+        const raw = file.webkitRelativePath || file.name;
+        const normalized = raw.replaceAll('\\', '/');
+        if (file.webkitRelativePath) {
+          const parts = normalized.split('/');
+          return parts.slice(1).join('/') || file.name;
+        }
+        return normalized;
+      }
+
+      async function readFilesForUpload(fileList) {
+        const files = [];
+        for (const file of fileList) {
+          const text = await file.text();
+          files.push({
+            path: normalizeUploadedPath(file),
+            content: text
+          });
+        }
+        return files;
+      }
+
+      async function uploadMany(fileList) {
+        if (!state.selectedBotId) return;
+        if (!fileList.length) return;
+        const files = await readFilesForUpload(fileList);
+        await api(`/api/bots/${state.selectedBotId}/files/bulk`, {
+          method: 'POST',
+          body: JSON.stringify({ files })
+        });
+        await loadBot(state.selectedBotId, false);
+        toast(`Загружено ${files.length} файл(ов)`);
+      }
+
+      async function startBot() {
+        await api(`/api/bots/${state.selectedBotId}/start`, { method: 'POST' });
+        await refreshBots(true);
+      }
+
+      async function stopBot() {
+        await api(`/api/bots/${state.selectedBotId}/stop`, { method: 'POST' });
+        await refreshBots(true);
+      }
+
+      async function deleteBot() {
+        if (!state.selectedBotId) return;
+        if (!confirm('Удалить бота целиком вместе со всеми файлами?')) return;
+        await api(`/api/bots/${state.selectedBotId}`, { method: 'DELETE' });
+        state.selectedBotId = '';
+        state.selectedBot = null;
+        clearEditor();
+        await refreshBots(true);
+      }
+
+      async function saveSettings() {
+        if (!state.selectedBotId) return;
+        const payload = {
+          name: els.editName.value.trim(),
+          entryFile: els.editEntry.value.trim() || 'bot.js',
+          autostart: els.editAutostart.checked
+        };
+        if (els.editToken.value.trim()) {
+          payload.token = els.editToken.value.trim();
+        }
+        await api(`/api/bots/${state.selectedBotId}`, {
+          method: 'PUT',
+          body: JSON.stringify(payload)
+        });
+        els.editToken.value = '';
+        await refreshBots(true);
+        toast('Настройки сохранены');
+      }
+
+      async function refreshLogs() {
+        if (!state.selectedBotId) return;
+        const data = await api(`/api/bots/${state.selectedBotId}/logs`);
+        if (state.selectedBot) {
+          state.selectedBot.logs = data.logs || [];
+          renderLogs(state.selectedBot);
+        }
+      }
+
+      async function clearStorage() {
+        if (!state.selectedBotId) return;
+        if (!confirm('Очистить постоянное storage этого бота?')) return;
+        await api(`/api/bots/${state.selectedBotId}/storage`, { method: 'DELETE' });
+        await refreshBots(true);
+      }
+
+      function bindEvents() {
+        els.createForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          try {
+            await api('/api/bots', {
+              method: 'POST',
+              body: JSON.stringify({
+                name: els.newName.value.trim(),
+                token: els.newToken.value.trim(),
+                entryFile: els.newEntry.value.trim() || 'bot.js',
+                autostart: els.newAutostart.checked
+              })
+            });
+            els.createForm.reset();
+            els.newEntry.value = 'bot.js';
+            els.newAutostart.checked = true;
+            await refreshBots(false);
+          } catch (error) {
+            toast(error.message);
+          }
+        });
+
+        els.refreshBots.addEventListener('click', () => refreshBots(true).catch((error) => toast(error.message)));
+        els.startBot.addEventListener('click', () => startBot().catch((error) => toast(error.message)));
+        els.stopBot.addEventListener('click', () => stopBot().catch((error) => toast(error.message)));
+        els.deleteBot.addEventListener('click', () => deleteBot().catch((error) => toast(error.message)));
+        els.saveFile.addEventListener('click', () => saveCurrentFile().catch((error) => toast(error.message)));
+        els.deleteFile.addEventListener('click', () => deleteCurrentFile().catch((error) => toast(error.message)));
+        els.saveSettings.addEventListener('click', () => saveSettings().catch((error) => toast(error.message)));
+        els.refreshLogs.addEventListener('click', () => refreshLogs().catch((error) => toast(error.message)));
+        els.clearStorage.addEventListener('click', () => clearStorage().catch((error) => toast(error.message)));
+
+        els.newFile.addEventListener('click', async () => {
+          if (!state.selectedBotId) return;
+          const filePath = prompt('Новый файл, например utils/helper.js', 'bot.js');
+          if (!filePath) return;
+          try {
+            state.currentFile = filePath;
+            els.codeEditor.value = '// Новый файл\n';
+            await saveCurrentFile();
+            await loadFile(filePath);
+          } catch (error) {
+            toast(error.message);
+          }
+        });
+
+        els.uploadFiles.addEventListener('change', async () => {
+          try {
+            await uploadMany(Array.from(els.uploadFiles.files || []));
+            els.uploadFiles.value = '';
+          } catch (error) {
+            toast(error.message);
+          }
+        });
+
+        els.uploadFolder.addEventListener('change', async () => {
+          try {
+            await uploadMany(Array.from(els.uploadFolder.files || []));
+            els.uploadFolder.value = '';
+          } catch (error) {
+            toast(error.message);
+          }
+        });
+      }
+
+      async function init() {
+        bindEvents();
+        try {
+          await api('/api/health');
+          setServiceStatus(true);
+        } catch (_) {
+          setServiceStatus(false);
+        }
+
+        try {
+          await refreshBots(true);
+        } catch (error) {
+          console.error(error);
+        }
+
+        state.logsTimer = setInterval(() => refreshLogs().catch(() => {}), 4000);
+        state.botsTimer = setInterval(() => refreshBots(true).catch(() => {}), 8000);
+      }
+
+      syncActionButtons();
+      init().catch((error) => {
+        console.error(error);
+        toast(error.message || 'Ошибка инициализации');
+      });
+    </script>
+  </body>
+</html>
